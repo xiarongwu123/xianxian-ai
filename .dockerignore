@@ -1,0 +1,10 @@
+node_modules
+dist
+data
+work
+outputs
+.env
+.env.production
+.git
+*.tsbuildinfo
+npm-debug.log*
