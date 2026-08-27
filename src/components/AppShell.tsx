@@ -62,9 +62,9 @@ export function AppShell({ page, onNavigate, user, onOpenLogin, onLogout, childr
           })}
         </nav>
         <div className="sidebar-status">
-          <strong>数据已更新</strong>
-          <span>A 股日线 · 2026/08/25</span>
-          <span>公告源 · 21:16</span>
+          <strong>数据按需核验</strong>
+          <span>行情与公告显示实际获取时间</span>
+          <span>分析结论保留数据来源</span>
         </div>
       </aside>
 

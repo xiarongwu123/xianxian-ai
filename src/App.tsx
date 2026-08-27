@@ -28,6 +28,7 @@ export default function App() {
   const [analysisError, setAnalysisError] = useState("");
   const [reportRecordId, setReportRecordId] = useState<string>();
   const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [replayItem, setReplayItem] = useState<HistoryItem>();
   const [streamingText, setStreamingText] = useState("");
   const [streamingStage, setStreamingStage] = useState<"technical" | "fundamental" | "combined" | null>(null);
   const streamQueue = useRef("");
@@ -68,7 +69,7 @@ export default function App() {
   const handleNavigate = (nextPage: AppPage) => { if (nextPage === "analysis" && page !== "confirm") setReport(null); setPage(nextPage); };
 
   useEffect(() => { api.me().then(setUser); }, []);
-  useEffect(() => { if (page === "analysis") loadHistory(); }, [page, user]);
+  useEffect(() => { if (user && (page === "capture" || page === "analysis" || page === "replay")) loadHistory(); else if (!user) setHistory([]); }, [page, user]);
 
   useEffect(() => () => {
     if (imageUrl) URL.revokeObjectURL(imageUrl);
@@ -182,10 +183,10 @@ export default function App() {
 
   return (
     <AppShell page={page} onNavigate={handleNavigate} user={user} onOpenLogin={() => setLoginOpen(true)} onLogout={handleLogout}>
-      {page === "capture" && <CapturePage onFileSelected={handleFileSelected} onOpenReplay={() => setPage("replay")} />}
+      {page === "capture" && <CapturePage userLoggedIn={Boolean(user)} history={history} onRequireLogin={() => setLoginOpen(true)} onFileSelected={handleFileSelected} onOpenReport={(item) => { setReport(item.payload); setReportRecordId(item.id); setPage("analysis"); }} onViewAll={() => handleNavigate("analysis")} />}
       {page === "confirm" && <ConfirmPage imageUrl={imageUrl} recognition={recognition} recognitionError={recognitionError} analysisError={analysisError} isRecognizing={isRecognizing} isGenerating={isGenerating} onBack={() => setPage("capture")} onConfirm={handleConfirm} />}
       {page === "analysis" && (report ? <AnalysisPage report={report} streamingStage={streamingStage} streamingText={streamingText} /> : <div className="page workspace-page"><div className="workspace-heading"><div><span className="eyebrow">RESEARCH ARCHIVE</span><h1>分析记录</h1><p>每次识别与 AI 分析都会自动保存</p></div><button className="button button-primary" type="button" onClick={() => setPage("capture")}>新建识别</button></div><ReportHistory items={history} onOpen={(item) => { setReport(item.payload); setReportRecordId(item.id); }} /></div>)}
-      {page === "replay" && <ReplayPage />}
+      {page === "replay" && <ReplayPage userLoggedIn={Boolean(user)} reports={history} selected={replayItem} onSelect={setReplayItem} onLogin={() => setLoginOpen(true)} />}
       {page === "watchlist" && <WatchlistPage user={user} onLogin={() => setLoginOpen(true)} onCreateAlert={() => { setStartCreatingAlert(true); setPage("alerts"); }} />}
       {page === "alerts" && <AlertsPage user={user} onLogin={() => setLoginOpen(true)} startCreating={startCreatingAlert} />}
       {page === "profile" && <ProfilePage user={user} onLogin={() => setLoginOpen(true)} onLogout={handleLogout} onNavigate={setPage} />}
