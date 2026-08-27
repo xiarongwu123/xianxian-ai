@@ -20,7 +20,7 @@ const schema = {
 };
 
 export async function recognizeChartImage(path: string, mimeType: string) {
-  if (!config.openaiApiKey) throw new Error("vision_api_not_configured");
+  if (!config.openaiApiKey || config.openaiApiKey.startsWith("replace-with-")) throw new Error("vision_api_not_configured");
   const base64 = (await readFile(path)).toString("base64");
   const response = await fetch(`${config.openaiApiBase}/responses`, {
     method: "POST",
@@ -33,11 +33,21 @@ export async function recognizeChartImage(path: string, mimeType: string) {
       ] }],
       text: { format: { type: "json_schema", name: "chart_recognition", strict: true, schema } },
     }),
-    signal: AbortSignal.timeout(60_000),
+    signal: AbortSignal.timeout(config.visionTimeoutMs),
   });
-  const body = await response.json() as any;
-  if (!response.ok) throw new Error(body?.error?.message ?? `vision_upstream_${response.status}`);
+  const responseText = await response.text();
+  let body: any;
+  try { body = JSON.parse(responseText); } catch { body = null; }
+  if (!response.ok) {
+    const upstreamMessage = body?.error?.message ?? body?.message;
+    const error = new Error(upstreamMessage || `vision_upstream_${response.status}`) as Error & { status?: number };
+    error.status = response.status;
+    throw error;
+  }
+  if (!body) throw new Error("vision_invalid_upstream_response");
   const outputText = body.output_text ?? body.output?.flatMap((item: any) => item.content ?? []).find((item: any) => item.type === "output_text")?.text;
   if (!outputText) throw new Error("vision_empty_response");
-  return { recognition: JSON.parse(outputText), provider: new URL(config.openaiApiBase).host, model: config.visionModel, responseId: body.id, createdAt: new Date().toISOString() };
+  try {
+    return { recognition: JSON.parse(outputText), provider: new URL(config.openaiApiBase).host, model: config.visionModel, responseId: body.id, createdAt: new Date().toISOString() };
+  } catch { throw new Error("vision_invalid_model_output"); }
 }

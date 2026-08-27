@@ -22,6 +22,7 @@ export const config = {
   openaiApiKey: process.env.OPENAI_API_KEY ?? "",
   openaiApiBase: (process.env.OPENAI_API_BASE ?? "https://api.openai.com/v1").replace(/\/$/, ""),
   visionModel: process.env.OPENAI_VISION_MODEL ?? "gpt-5.6-terra",
+  visionTimeoutMs: Number(process.env.VISION_TIMEOUT_MS ?? 120_000),
   analystTimeoutMs: Number(process.env.ANALYST_TIMEOUT_MS ?? 150_000),
 };
 
