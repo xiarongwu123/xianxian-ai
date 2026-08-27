@@ -8,6 +8,7 @@
     "dev:api": "tsx watch server/index.ts",
     "start:api": "tsx server/index.ts",
     "start": "NODE_ENV=production tsx server/index.ts",
+    "user:create": "tsx server/scripts/createUser.ts",
     "test:api": "tsx --test server/**/*.test.ts",
     "check:api": "tsc --noEmit -p server/tsconfig.json",
     "build": "tsc -b && vite build",

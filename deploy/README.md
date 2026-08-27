@@ -20,6 +20,18 @@ docker compose ps
 docker compose logs -f app
 ```
 
+Create or reset a password-based test user without storing credentials in Git:
+
+```bash
+read -r -p "Test phone: " SEED_USER_PHONE
+read -r -s -p "Test password: " SEED_USER_PASSWORD; echo
+docker compose exec -T \
+  -e SEED_USER_PHONE="$SEED_USER_PHONE" \
+  -e SEED_USER_PASSWORD="$SEED_USER_PASSWORD" \
+  app npm run user:create
+unset SEED_USER_PHONE SEED_USER_PASSWORD
+```
+
 ## Upgrade
 
 ```bash
